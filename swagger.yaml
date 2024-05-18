@@ -1,718 +1,3035 @@
----
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  description: "This is a sample server Petstore server.  You can find out more about\
-    \ Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).\
-    \  For this sample, you can use the api key `special-key` to test the authorization\
-    \ filters."
-  version: "1.0.5"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
+  title: OpenApi booking movie - Sang Nguyễn
+  description: Open Api for booking movie app
   contact:
-    email: "apiteam@swagger.io"
-  license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
-tags:
-- name: "pet"
-  description: "Everything about your Pets"
-  externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
-  description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
-schemes:
-- "https"
-- "http"
+    name: Sang Nguyễn
+    url: https://github.com/SangNguyenNgoc/course-registration.git
+    email: nngocsang38@gmail.com
+  version: '1.0'
+servers:
+  - url: https://booking-movie-backend-3a547b1ac2e9.herokuapp.com
+    description: Heroku Application
 paths:
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-      - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
-      consumes:
-      - "multipart/form-data"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to update"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "additionalMetadata"
-        in: "formData"
-        description: "Additional data to pass to server"
-        required: false
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "file to upload"
-        required: false
-        type: "file"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet:
-    post:
-      tags:
-      - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+  /api/v1/user:
     put:
       tags:
-      - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
+        - user-controller
+      summary: Cập nhật thông tin ngươì dùng
+      description: >-
+        API cập nhật thông tin ngươì dùng, các trường có thể cập nhật gồm: tên,
+        ngày sinh, giới tính, số điện thoại. 
+      operationId: updateUser
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
         required: true
-        schema:
-          $ref: "#/definitions/Pet"
       responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByStatus:
+        - Bearer Authentication: []
+  /api/v1/user/avatar:
+    put:
+      tags:
+        - user-controller
+      summary: Cập nhật avatar ngươì dùng
+      description: >-
+        API cập nhật avatar ngươì dùng, truyền avatar để thay đổi ảnh, nếu không
+        truyền avatar tự động quay về ảnh mặc định (coi như là xóa ảnh). 
+      operationId: updateAvatar
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - avatar
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/guest/verifyAccount:
+    put:
+      tags:
+        - user-controller
+      summary: Xác minh tài khoản
+      description: >-
+        API xác minh tài khoản người dùng. Cần mã vừa gửi qua email để xác minh
+        tài khoản. API chỉ dành cho tài khoản chưa xác minh.
+      operationId: verifyAccount
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/guest/verify/google:
+    put:
+      tags:
+        - user-controller
+      summary: Đặt mật khẩu cho ngươ dùng đăng kí với google
+      description: >-
+        API đặt mật khẩu cho ngươ dùng đăng kí với google, truyền vào body mật
+        khẩu người dùng đã nhập.
+      operationId: verifyGoogle
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/deleteComment/{commentId}:
+    put:
+      tags:
+        - comment-controller
+      summary: Xóa comment
+      description: Xóa comment của người dùng, chỉ được thực hiện bởi chính chủ.
+      operationId: deleteComment
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/refund/{billId}:
+    put:
+      tags:
+        - bill-controller
+      summary: Hủy đặt vé
+      description: >-
+        API hủy đặt vé, lưu ý chỉ khi chưa thanh toán mới có thể hủy. Khi hủy,
+        hóa đơn sẽ được đổi trạng thái và các vé trong hóa đơn sẽ được xóa.
+      operationId: refund
+      parameters:
+        - name: billId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/payment/{transactionId}:
+    put:
+      tags:
+        - bill-controller
+      summary: Thực hiện thanh toán
+      description: >-
+        API được gọi khi vừa thanh toán và chuyển về trang thông báo, API sẽ trả
+        về kết quả cần thiết để hiển thị với khách hàng, kết quả có thể thành
+        công hoặc thất bại. Khi thất bại, lí do sẽ được nêu rõ. 
+      operationId: pay
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Payment error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/changePassword:
+    put:
+      tags:
+        - user-controller
+      summary: Đổi mật khẩu.
+      description: API đôỉ mật khẩu. Cần truyền mật khẩu mới và cũ.
+      operationId: changePassword
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/auth/resetPass:
+    put:
+      tags:
+        - user-controller
+      summary: Đặt lại mật khẩu
+      description: API đặt lại mật khẩu. Cần truyền những thông tin cần thiết trong body.
+      operationId: sendToRetPass
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Not found
+          content:
+            application/json: {}
+        '409':
+          description: Unauthorized
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/room/{roomId}/status:
+    put:
+      tags:
+        - room-controller
+      summary: Chỉnh sửa trạng thái của phong
+      description: API thay đổi trạng thái của phong. API này chỉ dành cho trang admin.
+      operationId: updateStatus
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: statusId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie/{movieId}:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
-      produces:
-      - "application/json"
-      - "application/xml"
+        - movie-controller
+      summary: Lấy chi tiết 1 phim từ cơ sở dữ liệu bằng id
+      description: >-
+        API lấy chi tiết 1 phim từ cỡ sở dữ liệu bằng id, API này chỉ dành cho
+        trang admin
+      operationId: getDetailMovieByAdmin
       parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+    put:
+      tags:
+        - movie-controller
+      summary: Chỉnh sửa thuộc tính của phim
+      description: >-
+        API thay đổi thuộc tính của phim, API chỉ chỉnh sửa các thuộc tính cơ
+        bản, `genre` và `formats`, không bao gồm hình ảnh và các thuộc tính quan
+        hệ. API này chỉ dành cho trang admin.
+      operationId: updateMovie
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: movie
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: imageIds
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                poster:
+                  type: string
+                  format: binary
+                horPoster:
+                  type: string
+                  format: binary
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie/{movieId}/status/{statusId}:
+    put:
+      tags:
+        - movie-controller
+      summary: Chỉnh sửa trạng thái của phim
+      description: API thay đổi trạng thái của phim. API này chỉ dành cho trang admin.
+      operationId: updateStatus_1
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: statusId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie/{movieId}/poster:
+    put:
+      tags:
+        - movie-controller
+      summary: Thay poster(dọc) mới cho phim
+      description: API thay đổi poster(dọc) của phim. API này chỉ dành cho trang admin.
+      operationId: updatePoster
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - poster
+              type: object
+              properties:
+                poster:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie/{movieId}/images:
+    put:
+      tags:
+        - movie-controller
+      summary: Thêm, xóa hình ảnh cho phim
+      description: >-
+        API thêm, xóa hình ảnh của phim, `movieId`: id của phim cần thao tác,
+        `images`: mảng hình ảnh muốn thêm vào, `imageIds`: mảng id của hình ảnh
+        muốn xóa. API này chỉ dành cho trang admin.
+      operationId: updateImages
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: imageIds
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie/{movieId}/horPoster:
+    put:
+      tags:
+        - movie-controller
+      summary: Thay poster(ngang) mới cho phim
+      description: API thay đổi poster(ngang) của phim. API này chỉ dành cho trang admin.
+      operationId: updateHorPoster
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - poster
+              type: object
+              properties:
+                poster:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/moderationComment/{commentId}:
+    put:
+      tags:
+        - comment-controller
+      summary: Thay đổi trạng thái 1 comment
+      description: >-
+        API thay đổi trạng thái comment(chỉ nhận 3 giá trị approved, pending,
+        deleted), chỉ được thực hiện bởi admin.
+      operationId: setCommentStatus
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema/{cinemaId}:
+    get:
+      tags:
+        - cinema-controller
+      summary: Lấy thông tin rạp phim
+      description: Lấy thông tin rạp phim từ sơ sở dữ liệu theo id, api của admin.
+      operationId: getByIdAdmin
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cinema'
+      security:
+        - Bearer Authentication: []
+    put:
+      tags:
+        - cinema-controller
+      summary: Sửa thông tin rạp phim
+      description: Sửa thông tin rạp phim từ sơ sở dữ liệu
+      operationId: update
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cinema'
         required: true
-        type: "array"
-        items:
-          type: "string"
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/bill:
+    post:
+      tags:
+        - bill-controller
+      summary: Thêm hóa đơn kèm vé trước khi thanh toán
+      description: >-
+        API thêm hóa đơn kèm vé trước khi thanh toán, hóa đơn khi vừa thêm sẽ có
+        trạng thái mặc định là `Unpaid`, thời hạn thanh toán là 15 phút, nếu sau
+        15 phút không thực hiện thanh toán, hóa đơn và vé sẽ được xóa khỏi cơ sở
+        dữ liệu.
+      operationId: create
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bill'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/comment:
+    post:
+      tags:
+        - comment-controller
+      summary: Đăng comment
+      description: Đăng comment vào 1 phim bất kì.
+      operationId: create_1
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/auth/register:
+    post:
+      tags:
+        - user-controller
+      summary: Đăng ký tài khoản
+      description: >-
+        API đăng ký tài khoản người dùng, chưa bao gồm gửi mail xác nhận. Đăng
+        kí thành công sẽ trả token.
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/auth/authenticate:
+    post:
+      tags:
+        - user-controller
+      summary: Đăng nhập tài khoản
+      description: >-
+        API đăng nhập vào tài khoản người dùng. Đăng nhập thành công sẽ trả
+        token.
+      operationId: authenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/showtime:
+    post:
+      tags:
+        - showtime-controller
+      summary: Tạo thêm suất chiếu
+      description: Thêm suất chiếu vào cơ sở dữ liệu.
+      operationId: createShowtime
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShowtimeRequest'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/seat_type:
+    get:
+      tags:
+        - seat-type-controller
+      summary: Api lấy loại ghế
+      description: Lấy tất cả loại ghế từ sơ sở dữ liệu
+      operationId: getAll_3
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+    post:
+      tags:
+        - seat-type-controller
+      summary: Api tạo thêm loại ghế
+      description: 'Thêm loại ghê '
+      operationId: create_2
+      parameters:
+        - name: seatType
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SeatType'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/room/{roomId}/seatRoom:
+    post:
+      tags:
+        - seat-room-controller
+      summary: Thêm ghế vào phòng
+      description: Thêm ghế vào phòng
+      operationId: addSeat
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SeatRoomRequest'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movie:
+    post:
+      tags:
+        - movie-controller
+      summary: Thêm 1 phim mới vào cơ sở dữ liệu
+      description: >-
+        API thêm 1 phim mới vào cơ sở dữ liệu, khi phim mới được thêm vào
+        `status` mặc định là coming soon. API này chỉ dành cho trang admin
+      operationId: create_3
+      parameters:
+        - name: movie
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - horPoster
+                - images
+                - poster
+              type: object
+              properties:
+                poster:
+                  type: string
+                  format: binary
+                horPoster:
+                  type: string
+                  format: binary
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movieStatus:
+    post:
+      tags:
+        - movie-status-controller
+      summary: Api thêm trạng thái phim
+      description: Tạo trạng thái phim và thêm vào cơ sở dữ liệu
+      operationId: create_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieStatus'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movieGenre:
+    post:
+      tags:
+        - movie-genre-controller
+      summary: Api thêm thể loại phim
+      description: Tạo thể loại phim và thêm vào cơ sở dữ liệu
+      operationId: create_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieGenre'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/format:
+    post:
+      tags:
+        - format-controller
+      summary: Api thêm định dạng chiếu phim
+      description: Tạo định dạng chiếu phim và thêm vào cơ sở dữ liệu
+      operationId: create_6
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Format'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema:
+    post:
+      tags:
+        - cinema-controller
+      summary: Api thêm rạp phim
+      description: Tạo rạp phim và thêm vào cơ sở dữ liệu
+      operationId: create_7
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cinema'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinemaRoom:
+    post:
+      tags:
+        - cinema-controller
+      summary: Api thêm rạp phim và phòng chiếu
+      description: Tạo rạp phim và phòng chiếu và thêm vào cơ sở dữ liệu
+      operationId: createCinemaWithRoom
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CinemaRequest'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema/{cinemaId}/room:
+    post:
+      tags:
+        - room-controller
+      summary: Thêm phòng phim
+      description: Tạo phòng phim và thêm vào cơ sở dữ liệu
+      operationId: create_8
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomReq'
+        required: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/user/comments:
+    get:
+      tags:
+        - comment-controller
+      summary: Lấy lịch sử comment của người dùng
+      description: Lấy lịch sử comment của người dùng, chỉ được thực hiện bởi chính chủ.
+      operationId: getCommentByUser
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/profile:
+    get:
+      tags:
+        - user-controller
+      summary: Lấy thông tin của người dùng
+      description: 'API lấy thông tin của người dùng đang đăng nhập. '
+      operationId: getProfile
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/status/movies:
+    get:
+      tags:
+        - movie-controller
+      summary: Lấy phim theo 1 trạng thái từ sơ sở dữ liệu
+      description: >-
+        API lấy phim theo trạng thái, nếu truyền param `status`, 1 status kèm
+        phim sẽ được trả, nếu không truyền param, tất cả status kèm phim sẽ được
+        trả, ngoài ra cần page và size. Đường dẫn API này chỉ lấy các thuộc tính
+        cơ bản, API này dành cho trang người dùng.
+      operationId: getMovieByStatus
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/showtime/{showtimeId}/seats:
+    get:
+      tags:
+        - showtime-controller
+      summary: Api lấy ghế của suất chiếu
+      description: >-
+        Lấy ghế của suất chiếu, biến isReserved cho biết ghế đó đã được đặt hay
+        chưa.
+      operationId: getSeatInShowtime
+      parameters:
+        - name: showtimeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowtimeResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/searchMovie:
+    get:
+      tags:
+        - movie-controller
+      summary: Tìm kiếm phim
+      description: API tìm kiếm phim, yêu cầu chuỗi input, page và size
+      operationId: searchMoviesPageToLanding
+      parameters:
+        - name: search
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/movies:
+    get:
+      tags:
+        - movie-controller
+      summary: Lấy danh sách phim sắp chiếu và đang chiếu từ cơ sở dữ liệu
+      description: API lấy danh sách phim sắp chiếu và đang chiếu từ cỡ sở dữ liệu.
+      operationId: getAllComingAndShowing
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/movieStatus:
+    get:
+      tags:
+        - movie-status-controller
+      summary: Api lấy trạng thái phim
+      description: Lấy tất cả trạng thái phim từ sơ sở dữ liệu
+      operationId: getAll
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/movie/{movieSlug}:
+    get:
+      tags:
+        - movie-controller
+      summary: Lấy chi tiết 1 phim từ cơ sở dữ liệu bằng slug
+      description: API lấy chi tiết 1 phim từ cỡ sở dữ liệu bằng slug
+      operationId: getDetailMovieBySlug
+      parameters:
+        - name: movieSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/movie/{movieId}/showtime:
+    get:
+      tags:
+        - showtime-controller
+      summary: Lấy suất chiếu của 1 phim theo ngày
+      description: Lấy suất chiếu của 1 phim theo ngày từ sơ sở dữ liệu
+      operationId: getByMovie
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/cinemas:
+    get:
+      tags:
+        - cinema-controller
+      summary: Lấy tất cả rạp phim
+      description: Lấy tất cả rạp phim từ sơ sở dữ liệu
+      operationId: getAll_1
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/cinema/{cinemaId}:
+    get:
+      tags:
+        - cinema-controller
+      summary: Lấy thông tin rạp phim
+      description: Lấy thông tin rạp phim từ sơ sở dữ liệu theo id.
+      operationId: getById
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cinema'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/cinema/{cinemaId}/showtime:
+    get:
+      tags:
+        - showtime-controller
+      summary: Lấy suất chiếu theo ngày và rạp
+      description: Lấy suất chiếu theo ngày và rạp từ sơ sở dữ liệu
+      operationId: getByCinema
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CinemaResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/landing/cinema/movie/showtime:
+    get:
+      tags:
+        - showtime-controller
+      summary: Lấy toàn bộ suất chiếu theo phim ,rạp
+      description: Lấy toàn bộ suất chiếu theo phim ,rạp từ sơ sở dữ liệu
+      operationId: getAllShowtime
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CinemaResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/guest/sendToVerifyAccount:
+    get:
+      tags:
+        - user-controller
+      summary: Gửi email để xác minh tài khoản
+      description: >-
+        API gửi mã xác minh tài khoản người dùng qua email. API chỉ dành cho tài
+        khoản chưa xác minh.
+      operationId: sendToVerifyAccount
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/user/tickets/stillValid:
+    get:
+      tags:
+        - ticket-controller
+      summary: Lấy vé còn hạn sử dụng.
+      description: Lấy vé còn hạn sử dụng của 1 người dùng.
+      operationId: getTicketInUserAndStillValid
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/user/tickets/expired:
+    get:
+      tags:
+        - ticket-controller
+      summary: Lấy vé hết hạn sử dụng.
+      description: Lấy vé hết hạn sử dụng của 1 người dùng.
+      operationId: getTicketInUserAndExpired
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/user/bills:
+    get:
+      tags:
+        - bill-controller
+      summary: Lấy danh sách hóa đơn của người dùng
+      description: >-
+        Lấy danh sách hóa đơn của người dùng đang đăng nhập, api dùng cho phía
+        người dùng.
+      operationId: getBillByUser
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/ticket/{ticketId}:
+    get:
+      tags:
+        - ticket-controller
+      summary: Lấy chi tiết 1 vé bất kì.
+      description: >-
+        Lấy chi tiết 1 vé bất kì theo id, lưu ý vé này phải là của người đang
+        đăng nhập.
+      operationId: getDetail
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/sendToUpdateMail:
+    get:
+      tags:
+        - user-controller
+      summary: Gửi email để xác nhận đổi email
+      description: >-
+        API gửi mã xác nhận để đổi email người dùng. Cần email mới để gửi mã xác
+        nhận đổi email. API chỉ dành cho tài khoản đã xác minh.
+      operationId: sendToUpdateMail
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/bill/{billId}:
+    get:
+      tags:
+        - bill-controller
+      summary: Lấy chi tiết hóa đơn của người dùng
+      description: >-
+        Lấy chi tiết hóa đơn của người dùng đang đăng nhập, api dùng cho phía
+        người dùng.
+      operationId: getBillByUser_1
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: billId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillResponse'
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/customer/bill/{billId}/tickets/:
+    get:
+      tags:
+        - ticket-controller
+      summary: Lấy vé của 1 hóa đơn bất kì.
+      description: >-
+        Lấy vé của 1 hóa đơn bất kì, lưu ý hóa đơn này phải là của người đang
+        đăng nhập.
+      operationId: getTicketInBill
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: billId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/checkPassword:
+    get:
+      tags:
+        - user-controller
+      summary: Kiểm tra mật khẩu trước khi đổi
+      description: 'API kiểm tra mật khâủ trước khi đổi. '
+      operationId: checkPassword
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/auth/sendToResetPass:
+    get:
+      tags:
+        - user-controller
+      summary: Gửi mã xác nhận qua mail khi quên mật khẩu
+      description: >-
+        API gửi mã xác nhận qua mail khi quên mật khẩu. Cần truyền email đã được
+        đăng kí.
+      operationId: sendToResetPass
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '409':
+          description: Conflict
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/auth/checkUrlToResetPass:
+    get:
+      tags:
+        - user-controller
+      summary: Kiểm tra đường link đặt lại mật khẩu
+      description: >-
+        API kiểm tra đường link đặt lại mật khẩu. Truyền tham số `verify` của
+        url để tiến hành kiểm tra.
+      operationId: checkUrlToResetPass
+      parameters:
+        - name: verify
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Not found
+          content:
+            application/json: {}
+        '409':
+          description: Unauthorized
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/users:
+    get:
+      tags:
+        - user-controller
+      summary: Lấy thông tin của tất cả người dùng
+      description: >-
+        API lấy thông tin của tất cả người dùng. API này chỉ dành cho trang
+        admin. 
+      operationId: getAll_2
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/user/{userId}:
+    get:
+      tags:
+        - user-controller
+      summary: Lấy thông tin của người dùng
+      description: >-
+        API lấy thông tin của người dùng dựa vào email. Cần email để tìm thông
+        tin của người dùng đó. API này chỉ dành cho trang admin. 
+      operationId: getCurrentUserAdmin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json: {}
+        '404':
+          description: Not found
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/user/{userId}/comments:
+    get:
+      tags:
+        - comment-controller
+      summary: Lấy lịch sử comment của 1 người dùng
+      description: >-
+        Lấy lịch sử comment của 1 người dụng bằng email, chỉ được thực hiện bởi
+        admin.
+      operationId: getCommentByUserByAdmin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/user/{userId}/bills:
+    get:
+      tags:
+        - bill-controller
+      summary: Lấy danh sách hóa đơn của người dùng
+      description: >-
+        Lấy danh sách hóa đơn của người dùng bằng email, api dùng cho phía
+        admin.
+      operationId: getBillByAdmin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/statistical:
+    get:
+      tags:
+        - statistical-controller
+      summary: Lấy thông kê theo tháng năm
+      description: Lấy thông kê theo doanh thu, vé, rạp, phim theo tháng năm
+      operationId: statistical
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/rooms:
+    get:
+      tags:
+        - room-controller
+      summary: Lấy phòng chiếu phim
+      description: Lấy tất cả phòng chiếu phim từ sơ sở dữ liệu
+      operationId: getAll_4
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/room/{roomId}/seat-room:
+    get:
+      tags:
+        - seat-room-controller
+      summary: Lấy ghế trong 1 phòng chiếu
+      description: Lấy tất cả ghế trong 1 phòng từ sơ sở dữ liệu
+      operationId: getSeatRoom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/room-status:
+    get:
+      tags:
+        - room-status-controller
+      summary: Lấy trạng thái của phòng chiếu phim
+      description: Lấy tất cả trạng thái của phòng chiếu phim từ sơ sở dữ liệu
+      operationId: getAll_5
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movies:
+    get:
+      tags:
+        - movie-controller
+      summary: Lấy danh sách phim từ cơ sở dữ liệu
+      description: >-
+        API lấy danh sách phim từ cỡ sở dữ liệu, API này chỉ dành cho trang
+        admin
+      operationId: getAll_6
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/movieGenres:
+    get:
+      tags:
+        - movie-genre-controller
+      summary: Api lấy thể loại phim
+      description: Lấy tất cả thể loại phim từ sơ sở dữ liệu
+      operationId: getAll_7
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/formats:
+    get:
+      tags:
+        - format-controller
+      summary: Api lấy định dạng chiếu phim
+      description: Lấy tất cả định dạng chiếu phim từ sơ sở dữ liệu
+      operationId: getAll_8
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/comments:
+    get:
+      tags:
+        - comment-controller
+      summary: Lấy tất cả comment
+      description: Lấy tất cả comment
+      operationId: getAll_9
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: {}
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/comments/status:
+    get:
+      tags:
+        - comment-controller
+      summary: Lấy comment theo status
+      description: API lấy comment theo status, chỉ được thực hiện bởi admin.
+      operationId: getCommentByStatus
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema/{cinemaId}/rooms:
+    get:
+      tags:
+        - room-controller
+      summary: Lấy phòng chiếu phim
+      description: Lấy tất cả phòng chiếu phim theo rạp phim từ sơ sở dữ liệu
+      operationId: getAllByCinema
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema/{cinemaId}/rooms/name:
+    get:
+      tags:
+        - room-controller
+      summary: Lấy phòng chiếu phim theo id
+      description: Lấy tất cả phòng chiếu phim theo rạp từ sơ sở dữ liệu
+      operationId: getAllByName
+      parameters:
+        - name: cinemaId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: size
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/cinema/room/showtime:
+    get:
+      tags:
+        - showtime-controller
+      summary: Lấy thời khóa biểu suất chiếu
+      description: >-
+        Lấy thời khóa biểu suất chiếu(rạp > phòng > suất chiếu > phim) từ sơ sở
+        dữ liệu, api chỉ dành cho admi.
+      operationId: getByCinemaAdmin
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/bill/{billId}:
+    get:
+      tags:
+        - bill-controller
+      summary: Lấy chi tiết hóa đơn của người dùng
+      description: >-
+        Lấy chi tiết hóa đơn của người dùng bằng mã hóa đơn, api dùng cho phía
+        admin.
+      operationId: getBillByAdmin_1
+      parameters:
+        - name: billId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillResponse'
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+  /api/v1/admin/showtime/{showtimeId}:
+    delete:
+      tags:
+        - showtime-controller
+      summary: Xóa suất chiếu
+      description: Xóa suất chiếu khỏi cơ sở dữ liệu.
+      operationId: deleteShowtime
+      parameters:
+        - name: showtimeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: {}
+        '400':
+          description: Data invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Bearer Authentication: []
+components:
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        point:
+          type: integer
+          format: int32
+        avatar:
+          type: string
+        gender:
+          type: string
+        verify:
+          type: boolean
+        role:
+          type: string
+        full_name:
+          type: string
+        date_of_birth:
+          type: string
+        phone_number:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        httpStatus:
+          type: string
           enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByTags:
-    get:
-      tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
-  /pet/{petId}:
-    get:
-      tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - api_key: []
-    post:
-      tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "name"
-        in: "formData"
-        description: "Updated name of the pet"
-        required: false
-        type: "string"
-      - name: "status"
-        in: "formData"
-        description: "Updated status of the pet"
-        required: false
-        type: "string"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    delete:
-      tags:
-      - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "api_key"
-        in: "header"
-        required: false
-        type: "string"
-      - name: "petId"
-        in: "path"
-        description: "Pet id to delete"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/order:
-    post:
-      tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "order placed for purchasing the pet"
-        required: true
-        schema:
-          $ref: "#/definitions/Order"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
-    get:
-      tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.\
-        \ Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of pet that needs to be fetched"
-        required: true
-        type: "integer"
-        maximum: 10
-        minimum: 1
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-    delete:
-      tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.\
-        \ Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /store/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /user/createWithArray:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+        statusCode:
+          type: integer
+          format: int32
+        error:
+          type: string
+        messages:
+          type: array
           items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
+            type: string
+    UserUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date-time
+        gender:
+          type: string
+        phoneNumber:
+          pattern: ^[0-9]{10}$
+          type: string
+        email:
+          type: string
+    VerifyRequest:
+      required:
+        - verify
+      type: object
+      properties:
+        verify:
+          type: string
+    ChangePassRequest:
+      required:
+        - newPass
+        - oldPass
+      type: object
+      properties:
+        oldPass:
+          type: string
+        newPass:
+          type: string
+    ResetPassRequest:
+      required:
+        - pass
+        - verifyToken
+      type: object
+      properties:
+        pass:
+          type: string
+        verifyToken:
+          type: string
+    Cinema:
+      required:
+        - address
+        - city
+        - description
+        - district
+        - name
+        - phoneNumber
+        - status
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        address:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        phoneNumber:
+          pattern: ^[0-9]{10}$
+          type: string
+        status:
+          type: string
+    Bill:
+      required:
+        - seatId
+        - showtimeId
+      type: object
+      properties:
+        changedPoint:
+          maximum: 50
+          minimum: 0
+          type: integer
+          format: int32
+        showtimeId:
+          type: string
+        seatId:
+          type: array
           items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
-    get:
-      tags:
-      - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-    put:
-      tags:
-      - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "name that need to be updated"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        description: "Updated user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
-    delete:
-      tags:
-      - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be deleted"
-        required: true
-        type: "string"
-      responses:
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-  /user/login:
-    get:
-      tags:
-      - "user"
-      summary: "Logs user into the system"
-      description: ""
-      operationId: "loginUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
-        required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          headers:
-            X-Expires-After:
-              type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-          schema:
-            type: "string"
-        400:
-          description: "Invalid username/password supplied"
-  /user/logout:
-    get:
-      tags:
-      - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      operationId: "logoutUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters: []
-      responses:
-        default:
-          description: "successful operation"
-  /user:
-    post:
-      tags:
-      - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "https://petstore.swagger.io/oauth/authorize"
-    flow: "implicit"
-    scopes:
-      read:pets: "read your pets"
-      write:pets: "modify pets in your account"
-definitions:
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          type: "string"
-          xml:
-            name: "photoUrl"
-      tags:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          xml:
-            name: "tag"
-          $ref: "#/definitions/Tag"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
-    xml:
-      name: "Pet"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-    xml:
-      name: "Order"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+            type: integer
+            format: int32
+    Comment:
+      required:
+        - content
+        - movieId
+        - rating
+      type: object
+      properties:
+        content:
+          type: string
+        movieId:
+          type: string
+        rating:
+          maximum: 10
+          minimum: 1
+          type: integer
+          format: int32
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        exist:
+          type: boolean
+    User:
+      required:
+        - fullName
+        - password
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    AuthRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          maxLength: 2147483647
+          minLength: 6
+          type: string
+    ShowtimeRequest:
+      required:
+        - format_id
+        - movie_id
+        - room_id
+        - start_date
+        - start_time
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date-time
+        start_time:
+          type: string
+          format: date-time
+        movie_id:
+          type: string
+        format_id:
+          type: integer
+          format: int32
+        room_id:
+          type: string
+    SeatType:
+      required:
+        - name
+        - price
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          readOnly: true
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+    SeatRoomRequest:
+      required:
+        - row
+        - row_index
+        - type_id
+      type: object
+      properties:
+        row:
+          type: string
+        row_index:
+          type: string
+        type_id:
+          type: string
+    CinemaResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomResponse'
+        phone_number:
+          type: string
+    CommentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        content:
+          type: string
+        rating:
+          type: integer
+          format: int32
+        movie:
+          type: string
+        user:
+          type: string
+        status:
+          type: string
+          enum:
+            - APPROVED
+            - PENDING
+            - DELETED
+        create_date:
+          type: string
+        user_id:
+          type: string
+        avatar_user:
+          type: string
+    Format:
+      required:
+        - caption
+        - version
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        caption:
+          type: string
+        version:
+          type: string
+    MovieGenre:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+    MovieImage:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        path:
+          type: string
+        extension:
+          type: string
+    MovieResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        director:
+          type: string
+        cast:
+          type: string
+        rating:
+          type: number
+          format: double
+        language:
+          type: string
+        description:
+          type: string
+        trailer:
+          type: string
+        poster:
+          type: string
+        producer:
+          type: string
+        rated:
+          type: string
+        slug:
+          type: string
+        genre:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieGenre'
+        status:
+          $ref: '#/components/schemas/MovieStatus'
+        formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Format'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieImage'
+        showtimes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShowtimeResponse'
+        comment:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentResponse'
+        cinemas:
+          type: array
+          items:
+            $ref: '#/components/schemas/CinemaResponse'
+        sub_name:
+          type: string
+        release_date:
+          type: string
+        end_date:
+          type: string
+        running_time:
+          type: integer
+          format: int32
+        number_of_ratings:
+          type: integer
+          format: int32
+        sum_of_ratings:
+          type: integer
+          format: int32
+        horizontal_poster:
+          type: string
+    MovieStatus:
+      required:
+        - description
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          readOnly: true
+        description:
+          type: string
+        slug:
+          type: string
+          readOnly: true
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieResponse'
+    RoomResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/RoomStatus'
+        totalSeats:
+          type: integer
+          format: int32
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatRoomResponse'
+        cinema:
+          $ref: '#/components/schemas/CinemaResponse'
+        showtimes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShowtimeResponse'
+    RoomStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+    SeatRoomResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        row:
+          type: string
+        type:
+          $ref: '#/components/schemas/SeatType'
+        seat_id:
+          type: integer
+          format: int32
+        is_reserved:
+          type: boolean
+        row_index:
+          type: integer
+          format: int32
+    ShowtimeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: boolean
+        format:
+          $ref: '#/components/schemas/Format'
+        room:
+          $ref: '#/components/schemas/RoomResponse'
+        movie:
+          $ref: '#/components/schemas/MovieResponse'
+        start_date:
+          type: string
+        start_time:
+          type: string
+        running_time:
+          type: integer
+          format: int32
+    CinemaRequest:
+      required:
+        - address
+        - city
+        - description
+        - district
+        - name
+        - phoneNumber
+        - status
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        address:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        phoneNumber:
+          pattern: ^[0-9]{10}$
+          type: string
+        status:
+          type: string
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomReq'
+    RoomReq:
+      required:
+        - name
+        - totalSeats
+      type: object
+      properties:
+        totalSeats:
+          type: integer
+          format: int32
+        name:
+          type: string
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatRoomRequest'
+    ListResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+        data:
+          type: array
+          items:
+            type: object
+    BillResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        total:
+          type: number
+          format: double
+        status:
+          $ref: '#/components/schemas/BillStatus'
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        tickets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketResponse'
+        create_time:
+          type: string
+        payment_at:
+          type: string
+        changed_point:
+          type: integer
+          format: int32
+        cancel_date:
+          type: string
+        cancel_reason:
+          type: string
+    BillStatus:
+      type: object
+      properties:
+        name:
+          type: string
+    TicketResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        showtime:
+          type: string
+        movie:
+          type: string
+        cinema:
+          type: string
+        room:
+          type: string
+        seat:
+          type: string
+        price:
+          type: number
+          format: double
+        still_valid:
+          type: boolean
+        cinema_address:
+          type: string
+    CardResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        chart:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnResponse'
+        percent:
+          type: string
+    ColumnResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+  securitySchemes:
+    Bearer Authentication:
+      type: http
+      description: JWT to authentication and authorization
+      in: header
+      scheme: Bearer
+      bearerFormat: JWT
